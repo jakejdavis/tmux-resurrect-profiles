@@ -8,8 +8,8 @@ use cmds::create::create;
 use cmds::select::select;
 
 #[derive(Debug, Parser)] 
-#[clap(name = "tmux-reurrect-profiles")]
-#[clap(bin_name = "tmux-reurrect-profiles")]
+#[clap(name = "tmux-resurrect-profiles")]
+#[clap(bin_name = "tmux-resurrect-profiles")]
 #[clap(about = "CLI for switching between multiple tmux-resurrect profiles", long_about = None)]
 struct Cli {
     #[clap(subcommand)]
@@ -44,8 +44,14 @@ fn main() {
         Commands::Select { profile } => select(&profile), 
         Commands::Launch { profile } =>
             select(&profile).and_then(|_| {
-                let mut cmd = std::process::Command::new("tmux");
-                let _cmd_result = cmd.spawn();
+                std::process::Command::new("tmux")
+                    .arg("kill-server")
+                    .spawn()?
+                    .wait()?;
+
+                std::process::Command::new("tmux")
+                    .spawn()?
+                    .wait()?;
                 Ok(())
             }),
         Commands::Create { profile } => create(&profile)
